@@ -4,7 +4,7 @@
       "current": {
         "engine": "engine-3.47.0-bf21c701",
         "engine-ios": "engine-ios-3.47.0-3e7d46e8",
-        "tools": "tools-3.47.0-0f0ecf91"
+        "tools": "tools-3.47.0-e599f7a1"
       },
       "releases": {
         "engine-3.47.0-bf21c701": {
@@ -22,6 +22,10 @@
         "tools-3.47.0-21a55834": {
           "kind": "tools",
           "manifest_sha256": "f81acd32097aa0d46bd93e579928640caa3aad6ee8e3d3b4d5e1fe7c1d7d8668"
+        },
+        "tools-3.47.0-e599f7a1": {
+          "kind": "tools",
+          "manifest_sha256": "fec66867dd420b3d581c90780ae269a52c88aa5928da40674a390527103f1e34"
         }
       }
     },
@@ -29,7 +33,7 @@
       "current": {
         "engine": "engine-3.47.1-07a17f82",
         "engine-ios": "engine-ios-3.47.1-2f1dae35",
-        "tools": "tools-3.47.1-d02ca055"
+        "tools": "tools-3.47.1-a6c7c2bd"
       },
       "releases": {
         "engine-3.47.1-07a17f82": {
@@ -44,6 +48,10 @@
           "kind": "tools",
           "manifest_sha256": "7072611b62ffdd9b2021eeea4a008fc02a3aaeb73d079afbce5ca60ab8dd2175"
         },
+        "tools-3.47.1-a6c7c2bd": {
+          "kind": "tools",
+          "manifest_sha256": "408a3271b654999bd14c6d68b4d9066c76dbef51ca2914994b08a2e31f0ffb2e"
+        },
         "tools-3.47.1-d02ca055": {
           "kind": "tools",
           "manifest_sha256": "0659dc53df7a182987c776356da5b8237f55b8604b52e3aa52ee2eaed9db2ecc"
@@ -54,7 +62,7 @@
       "current": {
         "engine": "engine-3.47.2-9932cedd",
         "engine-ios": "engine-ios-3.47.2-1cf8fca2",
-        "tools": "tools-3.47.2-404e1e12"
+        "tools": "tools-3.47.2-52932991"
       },
       "releases": {
         "engine-3.47.2-9932cedd": {
@@ -69,6 +77,10 @@
           "kind": "tools",
           "manifest_sha256": "81be0ee8ff941eae38edc64229b213272642522bb3eda157db2701f53195f37c"
         },
+        "tools-3.47.2-52932991": {
+          "kind": "tools",
+          "manifest_sha256": "0f2ad9106d6c8ed80ad8d5976ee202b320b75c8ead3dd7c330da833745747d7d"
+        },
         "tools-3.47.2-85373eb2": {
           "kind": "tools",
           "manifest_sha256": "e68190206e390e7f9065ed6471f4360fadc0ff10da03c1cad2c07bd1efa81929"
@@ -79,7 +91,7 @@
       "current": {
         "engine": "engine-3.47.3-39e4d2ab",
         "engine-ios": "engine-ios-3.47.3-9d10ffb8",
-        "tools": "tools-3.47.3-aa87f7b8"
+        "tools": "tools-3.47.3-be719d39"
       },
       "releases": {
         "engine-3.47.3-39e4d2ab": {
@@ -97,6 +109,10 @@
         "tools-3.47.3-aa87f7b8": {
           "kind": "tools",
           "manifest_sha256": "46bc3cf936764f399252a77b27fecf3a457d1e590a16cfcb1b5a24e27a78cb64"
+        },
+        "tools-3.47.3-be719d39": {
+          "kind": "tools",
+          "manifest_sha256": "86a4b5e2769a325eebec69043968a28797525007c37ff3ccc29013007091bdb4"
         }
       }
     },
@@ -104,7 +120,7 @@
       "current": {
         "engine": "engine-3.47.4-19f86106",
         "engine-ios": "engine-ios-3.47.4-503a9a6b",
-        "tools": "tools-3.47.4-e90b47c5"
+        "tools": "tools-3.47.4-1e3fb2be"
       },
       "releases": {
         "engine-3.47.4-19f86106": {
@@ -114,6 +130,10 @@
         "engine-ios-3.47.4-503a9a6b": {
           "kind": "engine-ios",
           "manifest_sha256": "42dec5339a70982a7a6e8bc2727c442c2c792a3b09dc2c6e0eebd82df376339c"
+        },
+        "tools-3.47.4-1e3fb2be": {
+          "kind": "tools",
+          "manifest_sha256": "19ef322b5ba11e02cbf8c45bb1a047a9d4e78ef773e6a878b67fe3d64f40bbc1"
         },
         "tools-3.47.4-635d8f49": {
           "kind": "tools",
@@ -129,7 +149,7 @@
       "current": {
         "engine": "engine-3.47.5-506f6dd9",
         "engine-ios": "engine-ios-3.47.5-18d28260",
-        "tools": "tools-3.47.5-79d94436"
+        "tools": "tools-3.47.5-e526ca9f"
       },
       "releases": {
         "engine-3.47.5-506f6dd9": {
@@ -147,6 +167,10 @@
         "tools-3.47.5-cfa40070": {
           "kind": "tools",
           "manifest_sha256": "1df781236450ca21baee1eaaee9cc917d7d856807978c479893b6604847573e8"
+        },
+        "tools-3.47.5-e526ca9f": {
+          "kind": "tools",
+          "manifest_sha256": "db9be98d9c171922972b55241d36bdac191918db3c42a02d54187d55fa4fa5de"
         }
       }
     },
@@ -154,7 +178,7 @@
       "current": {
         "engine": "engine-3.47.6-6438fd9c",
         "engine-ios": "engine-ios-3.47.6-a41f687f",
-        "tools": "tools-3.47.6-b1fadc1e"
+        "tools": "tools-3.47.6-c4716085"
       },
       "releases": {
         "engine-3.47.6-6438fd9c": {
@@ -172,6 +196,10 @@
         "tools-3.47.6-b9535571": {
           "kind": "tools",
           "manifest_sha256": "280ae88ae31faa0340947a40d46e50dd07e6374cb6247b1dcf21fb25df81397c"
+        },
+        "tools-3.47.6-c4716085": {
+          "kind": "tools",
+          "manifest_sha256": "ae91b785dec760d639aab997345e3a108cbfc3cfe82b67fcb4cfbda6b4535fc7"
         }
       }
     },
@@ -179,7 +207,7 @@
       "current": {
         "engine": "engine-3.47.7-0c7c8fe7",
         "engine-ios": "engine-ios-3.47.7-20b14e62",
-        "tools": "tools-3.47.7-eca93bbf"
+        "tools": "tools-3.47.7-f8e31273"
       },
       "releases": {
         "engine-3.47.7-0c7c8fe7": {
@@ -197,6 +225,10 @@
         "tools-3.47.7-eca93bbf": {
           "kind": "tools",
           "manifest_sha256": "cc474e7028c852748b9e3f9c43c486a678380fdd8828aea1d751eb730c5c0750"
+        },
+        "tools-3.47.7-f8e31273": {
+          "kind": "tools",
+          "manifest_sha256": "3e2aa2121445ca922b788f9d36198b8325bd06512d0398b2eb99990bebd06952"
         }
       }
     },
@@ -204,7 +236,7 @@
       "current": {
         "engine": "engine-3.47.8-7666dd5d",
         "engine-ios": "engine-ios-3.47.8-34e670fb",
-        "tools": "tools-3.47.8-fb567792"
+        "tools": "tools-3.47.8-14e415cb"
       },
       "releases": {
         "engine-3.47.8-7666dd5d": {
@@ -214,6 +246,10 @@
         "engine-ios-3.47.8-34e670fb": {
           "kind": "engine-ios",
           "manifest_sha256": "f8fe0b4a60c24523b2610c621351f835e914574381d417868379ad997fb4deb2"
+        },
+        "tools-3.47.8-14e415cb": {
+          "kind": "tools",
+          "manifest_sha256": "56bf7665f8a10834e027090347cfaa2d040788aaaae9ab39d66c3ef13823bd3d"
         },
         "tools-3.47.8-e1301af7": {
           "kind": "tools",
@@ -229,7 +265,7 @@
       "current": {
         "engine": "engine-3.47.9-df6557e4",
         "engine-ios": "engine-ios-3.47.9-771cfe76",
-        "tools": "tools-3.47.9-d7e70fbf"
+        "tools": "tools-3.47.9-37dc74e8"
       },
       "releases": {
         "engine-3.47.9-df6557e4": {
@@ -239,6 +275,10 @@
         "engine-ios-3.47.9-771cfe76": {
           "kind": "engine-ios",
           "manifest_sha256": "a53afd155a5a5ddec467aae8cfbf8eda33bbe34a119fecc250d3a750fd014b02"
+        },
+        "tools-3.47.9-37dc74e8": {
+          "kind": "tools",
+          "manifest_sha256": "840f9b57160da2ccfc06d733ab7e45ccffa0f854a9e50d41334491b0ca220f3a"
         },
         "tools-3.47.9-a5c45c23": {
           "kind": "tools",
