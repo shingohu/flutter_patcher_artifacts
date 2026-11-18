@@ -3,6 +3,7 @@ import 'package:kernel/kernel.dart';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter_patcher_kernel_tools/src/interface_commands.dart';
 import 'package:flutter_patcher_kernel_tools/src/interface_details.dart';
 import 'package:flutter_patcher_kernel_tools/src/interface_document.dart';
 import 'package:flutter_patcher_kernel_tools/src/extract_surface.dart';
@@ -512,6 +513,52 @@ void main() {
       'whole patches carry the free package, whose calls are covered',
     );
     check(uri.scheme == 'file', 'fixture');
+  });
+  test('a member a constructor shadows is widened to its class', () {
+    final uri = Uri.parse('file:///fixture.dart');
+    const button = 'package:flutter/src/cupertino/button.dart';
+    final lib = library(button);
+    final shadowed = Class(name: 'ToolbarButton', fileUri: uri)
+      ..addConstructor(
+        Constructor(
+          FunctionNode(EmptyStatement()),
+          name: Name('text'),
+          fileUri: uri,
+        ),
+      )
+      ..addField(Field.immutable(Name('text'), fileUri: uri))
+      ..addProcedure(method('onPressed', kind: ProcedureKind.Getter));
+    final plain = Class(name: 'Label', fileUri: uri)
+      ..addField(Field.immutable(Name('text'), fileUri: uri));
+    lib
+      ..addClass(shadowed)
+      ..addClass(plain);
+    final doc = InterfaceDocument()
+      ..add(
+        'dynamically-callable',
+        button,
+        type: 'ToolbarButton',
+        member: 'text',
+      )
+      ..add('callable', button, type: 'ToolbarButton', member: 'get:onPressed')
+      ..add('dynamically-callable', button, type: 'Label', member: 'text');
+    final rows = widenShadowedMembers(
+      Component(libraries: [lib]),
+      doc,
+    ).rows('dynamically-callable');
+    bool has(String type, String? member) =>
+        rows.any((r) => r['class'] == type && r['member'] == member);
+    check(has('ToolbarButton', null), 'shadowed field widened to its class');
+    check(!has('ToolbarButton', 'text'), 'no row resolving to the constructor');
+    check(has('Label', 'text'), 'unshadowed field kept');
+    check(
+      widenShadowedMembers(
+            Component(libraries: [lib]),
+            doc,
+          ).rows('callable').single['member'] ==
+          'get:onPressed',
+      'prefixed accessors are not shadowed',
+    );
   });
   print('$cases interface structural cases passed');
 }
