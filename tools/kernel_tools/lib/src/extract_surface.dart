@@ -1,6 +1,7 @@
 import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart';
 import 'interface_document.dart';
+import 'interface_rows.dart';
 
 class _Collector extends RecursiveVisitor {
   final Set<String> ownPackages;
@@ -104,25 +105,15 @@ class _Collector extends RecursiveVisitor {
     return ownPackages.contains(uri.pathSegments.first);
   }
 
-  // LibraryIndex only prefixes Procedure getters/setters; fields, methods,
-  // operators and constructors are keyed by their bare name.
-  String? _memberKey(Member m) {
-    if (m is Procedure) {
-      if (m.isGetter) return 'get:${m.name.text}';
-      if (m.isSetter) return 'set:${m.name.text}';
-    }
-    return m.name.text;
-  }
-
   // Records the member as referenced and, when they differ, the declaration
   // the patch validator resolves it to. Public members of private classes
   // count: `requestOptions.headers` is declared by dio's `_RequestConfig`, and
   // mixin applications are private (`_RxImpl&RxNotifier&RxObjectMixin`).
   void _addMember(Map<String, Map<String, Set<String>>> into, Member? m) {
     if (m == null) return;
-    _record(into, m, _memberKey(m));
+    _record(into, m, memberName(m));
     final o = origin(m);
-    if (!identical(o, m)) _record(into, o, _memberKey(o));
+    if (!identical(o, m)) _record(into, o, memberName(o));
     if (identical(into, callable)) {
       for (final factory in redirectors[m] ?? const <Procedure>[]) {
         _addMember(into, factory);
@@ -132,11 +123,9 @@ class _Collector extends RecursiveVisitor {
 
   void _addSetter(Map<String, Map<String, Set<String>>> into, Member? m) {
     if (m == null) return;
-    // A field is keyed bare; only a Procedure setter carries the 'set:' prefix.
-    String key(Member m) => m is Field ? m.name.text : 'set:${m.name.text}';
-    _record(into, m, key(m));
+    _record(into, m, memberName(m));
     final o = origin(m);
-    if (!identical(o, m)) _record(into, o, key(o));
+    if (!identical(o, m)) _record(into, o, memberName(o));
   }
 
   void _recordPrivate(Map<String, Map<String, Set<String>>> into, Member m) {
@@ -145,19 +134,19 @@ class _Collector extends RecursiveVisitor {
     into
         .putIfAbsent(lib.importUri.toString(), () => {})
         .putIfAbsent(m.enclosingClass?.name ?? LibraryIndex.topLevel, () => {})
-        .add(_memberKey(m)!);
+        .add(memberName(m));
   }
 
   void _record(
     Map<String, Map<String, Set<String>>> into,
     Member m,
-    String? key,
+    String key,
   ) {
     final lib = m.enclosingLibrary;
     if (_isOwn(lib)) return;
     // LibraryIndex refuses to index members with a private name, so an entry
     // naming one would fail to resolve.
-    if (m.name.isPrivate || key == null) return;
+    if (m.name.isPrivate) return;
     into
         .putIfAbsent(lib.importUri.toString(), () => {})
         .putIfAbsent(m.enclosingClass?.name ?? LibraryIndex.topLevel, () => {})
@@ -424,25 +413,17 @@ void _dynamicRows(
         if (!m.isInstanceMember || m.name.isPrivate) continue;
         final name = m.name.text;
         final isSetter = m is Procedure && m.isSetter;
-        final isGetter = m is Field || (m is Procedure && m.isGetter);
         final reached = isSetter
             ? used.setters.contains(name)
             : used.methods.contains(name) ||
                   used.getters.contains(name) ||
                   (m is Field && m.hasSetter && used.setters.contains(name));
         if (!reached) continue;
-        final key = m is Field
-            ? name
-            : isSetter
-            ? 'set:$name'
-            : isGetter
-            ? 'get:$name'
-            : name;
         doc.add(
           'dynamically-callable',
           '${lib.importUri}',
           type: cls.name,
-          member: key,
+          member: memberName(m),
         );
       }
     }

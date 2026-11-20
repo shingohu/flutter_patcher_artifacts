@@ -85,6 +85,13 @@ def exercise(dart, entry, flutter, fixtures, source, work):
                 assert output.is_file() and output.stat().st_size > 0
                 data = json.loads(iface.read_text())
                 assert not any(r.get('class') == 'Object' for r in data['dynamically-callable'])
+                # Issue #14: shape1's dynamic `.text` lists this field, which a
+                # constructor of its name shadows; only its class row resolves.
+                button = 'CupertinoDesktopTextSelectionToolbarButton'
+                assert any(r.get('class') == button and 'member' not in r
+                           for r in data['dynamically-callable'])
+                assert not any(r.get('class') == button and r.get('member') == 'text'
+                               for rows in data.values() for r in rows)
                 results[mode] = {'rounds': iteration, 'bytecode_bytes': output.stat().st_size}
                 break
             if iteration == 5:

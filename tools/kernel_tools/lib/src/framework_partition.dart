@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:kernel/kernel.dart';
 
+import 'interface_rows.dart';
+
 /// Framework partition metadata generator.
 ///
 /// The partition is deliberately library-granular. A framework library is
@@ -258,18 +260,11 @@ class _FrameworkReuseCollector extends RecursiveVisitor {
   void addMember(Member? member) {
     if (member == null || !_public(member)) return;
     final clazz = member.enclosingClass;
-    final key = member is Procedure
-        ? (member.isGetter
-              ? 'get:${member.name.text}'
-              : member.isSetter
-              ? 'set:${member.name.text}'
-              : member.name.text)
-        : member.name.text;
     rows.add({
       'library': '${member.enclosingLibrary.importUri}',
       'section': 'callable',
       if (clazz != null) 'class': clazz.name,
-      'member': key,
+      'member': memberName(member),
     });
     addType(clazz);
   }

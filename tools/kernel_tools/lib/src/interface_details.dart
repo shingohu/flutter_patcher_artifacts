@@ -1,7 +1,10 @@
 import 'dart:convert';
+
 import 'package:crypto/crypto.dart';
 import 'package:kernel/ast.dart';
+
 import 'interface_document.dart';
+import 'interface_rows.dart';
 
 Map<String, Object?> describeInterface(
   Component component,
@@ -58,12 +61,7 @@ Map<String, Object?> describeInterface(
           ...cls.procedures,
           ...cls.constructors,
         ]) {
-          final name = m is Procedure && m.isGetter
-              ? 'get:${m.name.text}'
-              : m is Procedure && m.isSetter
-              ? 'set:${m.name.text}'
-              : m.name.text;
-          if (name == member) {
+          if (memberName(m) == member) {
             node = m;
             break;
           }
@@ -71,12 +69,7 @@ Map<String, Object?> describeInterface(
       }
     } else if (member != null) {
       for (final m in [...library.fields, ...library.procedures]) {
-        final name = m is Procedure && m.isGetter
-            ? 'get:${m.name.text}'
-            : m is Procedure && m.isSetter
-            ? 'set:${m.name.text}'
-            : m.name.text;
-        if (name == member) {
+        if (memberName(m) == member) {
           node = m;
           break;
         }

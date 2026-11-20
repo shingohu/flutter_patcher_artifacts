@@ -8,6 +8,7 @@
 
 import 'dart:io';
 
+import 'package:flutter_patcher_kernel_tools/src/interface_rows.dart';
 import 'package:kernel/kernel.dart';
 
 const List<String> _libs = <String>[
@@ -24,14 +25,6 @@ const List<String> _libs = <String>[
   'dart:_internal',
   'dart:ui',
 ];
-
-String _key(Member m) {
-  if (m is Procedure) {
-    if (m.isGetter) return 'get:${m.name.text}';
-    if (m.isSetter) return 'set:${m.name.text}';
-  }
-  return m.name.text;
-}
 
 String _q(String s) => "'${s.replaceAll("'", "''")}'";
 
@@ -58,12 +51,12 @@ void main(List<String> args) {
       privateMembers
           .putIfAbsent(uri, () => {})
           .putIfAbsent(container, () => {})
-          .add(_key(m));
+          .add(memberName(m));
       if (m.isInstanceMember) {
         overridable
             .putIfAbsent(uri, () => {})
             .putIfAbsent(container, () => {})
-            .add(_key(m));
+            .add(memberName(m));
       }
     }
 

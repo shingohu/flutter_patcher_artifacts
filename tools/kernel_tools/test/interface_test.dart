@@ -3,7 +3,7 @@ import 'package:kernel/kernel.dart';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter_patcher_kernel_tools/src/interface_commands.dart';
+import 'package:flutter_patcher_kernel_tools/src/interface_rows.dart';
 import 'package:flutter_patcher_kernel_tools/src/interface_details.dart';
 import 'package:flutter_patcher_kernel_tools/src/interface_document.dart';
 import 'package:flutter_patcher_kernel_tools/src/extract_surface.dart';
@@ -514,10 +514,12 @@ void main() {
     );
     check(uri.scheme == 'file', 'fixture');
   });
-  test('a member a constructor shadows is widened to its class', () {
+  test('a member name several members share is listed by its class', () {
     final uri = Uri.parse('file:///fixture.dart');
     const button = 'package:flutter/src/cupertino/button.dart';
     final lib = library(button);
+    // A named constructor and a field of one name (issue #14's
+    // CupertinoDesktopTextSelectionToolbarButton.text).
     final shadowed = Class(name: 'ToolbarButton', fileUri: uri)
       ..addConstructor(
         Constructor(
@@ -528,10 +530,20 @@ void main() {
       )
       ..addField(Field.immutable(Name('text'), fileUri: uri))
       ..addProcedure(method('onPressed', kind: ProcedureKind.Getter));
+    // A factory, a procedure in Kernel, and a field of one name: the SDK
+    // would resolve the factory's row to the field without an error.
+    final factory = Class(name: 'Shape', fileUri: uri)
+      ..addProcedure(
+        method('circle', kind: ProcedureKind.Factory, isStatic: true),
+      )
+      ..addField(Field.immutable(Name('circle'), fileUri: uri))
+      ..addProcedure(method('area', kind: ProcedureKind.Getter))
+      ..addProcedure(method('area', kind: ProcedureKind.Setter));
     final plain = Class(name: 'Label', fileUri: uri)
       ..addField(Field.immutable(Name('text'), fileUri: uri));
     lib
       ..addClass(shadowed)
+      ..addClass(factory)
       ..addClass(plain);
     final doc = InterfaceDocument()
       ..add(
@@ -541,23 +553,44 @@ void main() {
         member: 'text',
       )
       ..add('callable', button, type: 'ToolbarButton', member: 'get:onPressed')
+      ..add('callable', button, type: 'Shape', member: 'circle')
+      ..add('callable', button, type: 'Shape', member: 'get:area')
+      ..add('callable', button, type: 'Shape', member: 'set:area')
       ..add('dynamically-callable', button, type: 'Label', member: 'text');
-    final rows = widenShadowedMembers(
-      Component(libraries: [lib]),
-      doc,
-    ).rows('dynamically-callable');
-    bool has(String type, String? member) =>
-        rows.any((r) => r['class'] == type && r['member'] == member);
-    check(has('ToolbarButton', null), 'shadowed field widened to its class');
-    check(!has('ToolbarButton', 'text'), 'no row resolving to the constructor');
-    check(has('Label', 'text'), 'unshadowed field kept');
+    final conformed = conformRows(Component(libraries: [lib]), doc);
+    bool has(String section, String type, String? member) => conformed
+        .rows(section)
+        .any((r) => r['class'] == type && r['member'] == member);
     check(
-      widenShadowedMembers(
-            Component(libraries: [lib]),
-            doc,
-          ).rows('callable').single['member'] ==
-          'get:onPressed',
-      'prefixed accessors are not shadowed',
+      has('dynamically-callable', 'ToolbarButton', null),
+      'a field a constructor shadows is widened to its class',
+    );
+    check(
+      !has('dynamically-callable', 'ToolbarButton', 'text'),
+      'no row resolving to the constructor',
+    );
+    check(
+      has('callable', 'Shape', null) && !has('callable', 'Shape', 'circle'),
+      'a factory a field shadows is widened to its class',
+    );
+    check(
+      has('callable', 'ToolbarButton', 'get:onPressed') &&
+          has('callable', 'Shape', 'get:area') &&
+          has('callable', 'Shape', 'set:area'),
+      'a getter and a setter of one name are two names',
+    );
+    check(
+      has('dynamically-callable', 'Label', 'text'),
+      'a name one member has is kept',
+    );
+    final f = factory.procedures.first, g = factory.procedures[1];
+    check(
+      memberName(f) == 'circle' &&
+          memberName(g) == 'get:area' &&
+          memberName(factory.procedures[2]) == 'set:area' &&
+          memberName(factory.fields.single) == 'circle' &&
+          memberName(shadowed.constructors.single) == 'text',
+      'memberName is the name LibraryIndex resolves',
     );
   });
   print('$cases interface structural cases passed');

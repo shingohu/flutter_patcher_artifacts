@@ -1,5 +1,7 @@
 import 'package:kernel/kernel.dart';
+
 import 'interface_document.dart';
+import 'interface_rows.dart';
 
 /// Uses the module's imports/exported declarations, never a global name search.
 InterfaceDocument resolveInterfaceHints(
@@ -85,17 +87,13 @@ InterfaceDocument resolveInterfaceHints(
       candidates['${row['library']}|$type|$member'] = row;
     }
 
-    String key(Member m) => m is Procedure && m.isGetter
-        ? 'get:${m.name.text}'
-        : m is Procedure && m.isSetter
-        ? 'set:${m.name.text}'
-        : m.name.text;
     for (final lib in visible) {
       if (kind == 'member' && !name.contains('.')) {
         for (final m in lib.members) {
           if (!visibleMembers.contains(m)) continue;
-          if (!m.name.isPrivate && (name == m.name.text || name == key(m))) {
-            candidate(lib, member: key(m));
+          if (!m.name.isPrivate &&
+              (name == m.name.text || name == memberName(m))) {
+            candidate(lib, member: memberName(m));
           }
         }
       }
@@ -111,15 +109,15 @@ InterfaceDocument resolveInterfaceHints(
           for (final m in cls.members) {
             if ((m is Constructor || (m is Procedure && m.isFactory)) &&
                 m.name.text == ctor) {
-              candidate(lib, type: cls.name, member: key(m));
+              candidate(lib, type: cls.name, member: memberName(m));
             }
           }
         } else if (name.startsWith('${cls.name}.')) {
           final wanted = name.substring(cls.name.length + 1);
           for (final m in cls.members) {
             if (!m.name.isPrivate &&
-                (wanted == key(m) || wanted == m.name.text)) {
-              candidate(lib, type: cls.name, member: key(m));
+                (wanted == memberName(m) || wanted == m.name.text)) {
+              candidate(lib, type: cls.name, member: memberName(m));
             }
           }
         }

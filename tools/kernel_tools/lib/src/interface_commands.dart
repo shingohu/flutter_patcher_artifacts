@@ -7,6 +7,7 @@ import 'package:kernel/kernel.dart';
 
 import 'extract_surface.dart';
 import 'interface_document.dart';
+import 'interface_rows.dart';
 import 'interface_defaults.dart';
 import 'resolve_interface_hints.dart';
 import 'trim_interface.dart';
@@ -22,50 +23,6 @@ const interfaceUsage = '''
   trim-interface --dill <app.dill> --platform <platform.dill> --trim-iface <yaml>
                  --out <app-trim.dill> --out-platform <platform-trim.dill>
 ''';
-
-/// [doc] with every row the SDK would resolve to the wrong member widened to
-/// its class.
-///
-/// The SDK resolves a row's `member` through `LibraryIndex`, which keys a
-/// class's methods, fields and constructors by their bare name and lets a
-/// constructor replace a method or field of the same name. A row naming the
-/// field `CupertinoDesktopTextSelectionToolbarButton.text` then resolves to
-/// the constructor `CupertinoDesktopTextSelectionToolbarButton.text`, which
-/// `can-be-overridden` and `dynamically-callable` reject as not an instance
-/// member. A class row covers both.
-InterfaceDocument widenShadowedMembers(
-  Component component,
-  InterfaceDocument doc,
-) {
-  final shadowed = <String>{};
-  for (final lib in component.libraries) {
-    for (final cls in lib.classes) {
-      final constructors = {for (final c in cls.constructors) c.name.text};
-      for (final m in <Member>[...cls.procedures, ...cls.fields]) {
-        final bare = m is! Procedure || !(m.isGetter || m.isSetter);
-        if (bare && constructors.contains(m.name.text)) {
-          shadowed.add('${lib.importUri} ${cls.name} ${m.name.text}');
-        }
-      }
-    }
-  }
-  if (shadowed.isEmpty) return doc;
-  final result = InterfaceDocument();
-  for (final section in InterfaceDocument.sections) {
-    for (final row in doc.rows(section)) {
-      final widen = shadowed.contains(
-        '${row['library']} ${row['class']} ${row['member']}',
-      );
-      result.add(
-        section,
-        row['library']!,
-        type: row['class'],
-        member: widen ? null : row['member'],
-      );
-    }
-  }
-  return result;
-}
 
 Future<Map<String, Object?>> interfaceCommand(
   String command,
@@ -239,13 +196,12 @@ Future<Map<String, Object?>> interfaceCommand(
     }
     inputs['framework-reuse'] = reuse;
   }
-  inputs.updateAll((_, input) => widenShadowedMembers(component, input));
+  inputs.updateAll((_, input) => conformRows(component, input));
   final doc = InterfaceDocument();
   for (final input in inputs.values) {
     doc.merge(input);
   }
-  final trim = widenShadowedMembers(component, read('--trim-iface'))
-    ..merge(doc);
+  final trim = conformRows(component, read('--trim-iface'))..merge(doc);
   write('--out-iface', doc);
   write('--out-trim-iface', trim);
   if (options.containsKey('--out-details')) {
