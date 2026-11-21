@@ -12,6 +12,26 @@ String memberName(Member m) => m is Procedure && m.isGetter
     ? 'set:${m.name.text}'
     : m.name.text;
 
+/// Whether `LibraryIndex` resolves [m] by its name, so a row can name it.
+/// It indexes a private name only inside the library the name belongs to:
+/// `_addListener` of riverpod's framework library resolves there, while a
+/// private member a mixin application copies into another library does not.
+///
+/// This is the only test for members the host reaches on module instances
+/// (inherited members, dispatch): host code calls its own privates by name.
+/// Privates are skipped only where the module names a host member (its
+/// calls, overrides, constants, compiler hints), as module source cannot
+/// write another library's private name.
+bool indexableMember(Member m) =>
+    !m.name.isPrivate || m.name.library == m.enclosingLibrary;
+
+/// Whether [lib] belongs to the app: a package named in [own], or a `file:` library.
+bool isOwnLibrary(Library lib, Set<String> own) {
+  final uri = lib.importUri;
+  if (uri.scheme != 'package') return uri.scheme == 'file';
+  return own.contains(uri.pathSegments.first);
+}
+
 /// [doc] with every row whose member name is shared by several members of
 /// its class listed by the class instead.
 ///
@@ -30,8 +50,7 @@ InterfaceDocument conformRows(Component component, InterfaceDocument doc) {
     for (final cls in library.classes) {
       final seen = <String>{};
       for (final m in [...cls.procedures, ...cls.fields, ...cls.constructors]) {
-        // LibraryIndex leaves out names private to another library.
-        if (m.name.isPrivate && m.name.library != library) continue;
+        if (!indexableMember(m)) continue;
         if (!seen.add(memberName(m))) {
           shared.add('${library.importUri} ${cls.name} ${memberName(m)}');
         }

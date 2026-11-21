@@ -39,7 +39,10 @@ def check_clean(engine):
             if (path / '.git').exists():
                 paths.append(path)
     for path in set(paths):
-        require(not git(path, 'status', '--porcelain', '--untracked-files=no'),
+        # A gitlink may differ: DEPS pins each nested checkout itself (3.50's
+        # vulkan-deps records a glslang commit DEPS does not check out), and
+        # every DEPS checkout is checked here on its own.
+        require(not git(path, 'status', '--porcelain', '--untracked-files=no', '--ignore-submodules=all'),
                 f'managed source has tracked edits: {path}')
 
 

@@ -34,9 +34,7 @@ InterfaceDocument resolveInterfaceHints(
     }
   }
 
-  bool isOwn(Library lib) => lib.importUri.scheme == 'package'
-      ? own.contains(lib.importUri.pathSegments.first)
-      : lib.importUri.scheme == 'file';
+  bool isOwn(Library lib) => isOwnLibrary(lib, own);
   var foundOwn = false;
   for (final lib in component.libraries) {
     // Only dart:core is implicit. Including all platform libraries confuses
@@ -74,11 +72,7 @@ InterfaceDocument resolveInterfaceHints(
     }
     final candidates = <String, Map<String, String>>{};
     void candidate(Library lib, {String? type, String? member}) {
-      if (isOwn(lib) ||
-          (type?.startsWith('_') ?? false) ||
-          (member?.replaceFirst(RegExp(r'^(get|set):'), '').startsWith('_') ??
-              false))
-        return;
+      if (isOwn(lib) || (type?.startsWith('_') ?? false)) return;
       final row = <String, String>{
         'library': lib.importUri.toString(),
         if (type != null) 'class': type,
@@ -108,6 +102,7 @@ InterfaceDocument resolveInterfaceHints(
           if (cls.name != type) continue;
           for (final m in cls.members) {
             if ((m is Constructor || (m is Procedure && m.isFactory)) &&
+                !m.name.isPrivate &&
                 m.name.text == ctor) {
               candidate(lib, type: cls.name, member: memberName(m));
             }

@@ -166,8 +166,10 @@ def build(args):
     sdk = work / 'dart-sdk'
     run('git', 'clone', '--depth', '1', '--branch', pin['dart_version'], 'https://github.com/dart-lang/sdk.git', sdk)
     require(git('rev-parse', 'HEAD', cwd=sdk) == pin['dart_commit'], 'Dart tag commit drift')
-    patches = sorted((source / 'tools/dart2bytecode_patches').glob('*.patch'))
-    require(bool(patches), 'Missing reviewed tool patch')
+    # Patches per Dart minor version: upstream context moves between them.
+    dart_minor = '.'.join(pin['dart_version'].split('.')[:2])
+    patches = sorted((source / 'tools/dart2bytecode_patches' / dart_minor).glob('*.patch'))
+    require(bool(patches), f'Missing reviewed tool patch for Dart {dart_minor}')
     for patch in patches:
         run('git', 'apply', '--check', patch, cwd=sdk)
         run('git', 'apply', patch, cwd=sdk)

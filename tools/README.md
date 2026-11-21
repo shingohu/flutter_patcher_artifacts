@@ -4,6 +4,10 @@ CI compiles `tools/kernel_tools/bin/main.dart` with the pinned stock Dart SDK an
 reviewed Dart source patches into one `flutter_patcher_tools-<version>.dill`.
 Only that file is listed in `tools.manifest.json`. Users never compile this dill.
 
+The patches are in `dart2bytecode_patches/<major.minor>/`, for the Dart version
+`versions.json` pins to each Flutter version; one source builds against every
+supported `package:kernel` (`kernel_lists.dart`).
+
 Implemented subcommands:
 
 - `bytecode`: forwards arguments to the patched dart2bytecode entry point.

@@ -48,5 +48,10 @@
     "dart_version": "3.13.7",
     "dart_commit": "416e33b0ffaef062a60ec966bb8c82ed2b83f128",
     "engine_commit": "89c39edfdfae2949f6806e4a315c0c08522238b7"
+  },
+  "3.50.0": {
+    "dart_version": "3.14.0",
+    "dart_commit": "fa8c1270c374c1346931583a17c3b7f278d3822d",
+    "engine_commit": "371f77202a73e8dff57a8b3bff75bca55c090aee"
   }
 }

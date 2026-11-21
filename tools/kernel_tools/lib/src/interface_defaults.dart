@@ -20,10 +20,13 @@ const commonWidgets = <String, List<String>>{
   'painting/alignment.dart': ['Alignment'],
   'rendering/flex.dart': ['MainAxisAlignment', 'CrossAxisAlignment'],
 };
+/// Selectors a patch may call on `dynamic` though no host class lists them.
+/// No `*`: Dart 3.14 reads a lone `*` as "every selector" and rejects it
+/// beside others; every host lists the `*` of `num`'s classes anyway
+/// (Flutter's `Tween.lerp` multiplies `dynamic`).
 const dynamicSelectors = [
   '-',
   '+',
-  '*',
   'get:index',
   'relativeError',
   'absoluteError',

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:kernel/kernel.dart';
+import 'package:flutter_patcher_kernel_tools/src/kernel_lists.dart';
 import 'package:flutter_patcher_kernel_tools/src/framework_partition.dart';
 
 void check(bool value, String message) {
@@ -62,7 +63,7 @@ void main() {
     final host = library(hostUri);
     final theme = Class(
       name: 'Theme',
-      supertype: Supertype(object, const []),
+      supertype: Supertype(object, kernelList(const <DartType>[])),
       fileUri: _file,
     );
     final color = method('color', kind: ProcedureKind.Getter);
@@ -72,7 +73,7 @@ void main() {
       ..addProcedure(of);
     final affinity = Class(
       name: 'Affinity',
-      supertype: Supertype(object, const []),
+      supertype: Supertype(object, kernelList(const <DartType>[])),
       fileUri: _file,
     )..isEnum = true;
     final leading = Field.immutable(
@@ -84,7 +85,7 @@ void main() {
     affinity.addField(leading);
     final weird = Class(
       name: 'Weird',
-      supertype: Supertype(object, const []),
+      supertype: Supertype(object, kernelList(const <DartType>[])),
       fileUri: _file,
     );
     final foo = method('foo');
@@ -99,7 +100,7 @@ void main() {
     final carry = library(carryUri);
     final tile = Class(
       name: 'ExpansionTile',
-      supertype: Supertype(object, const []),
+      supertype: Supertype(object, kernelList(const <DartType>[])),
       fileUri: _file,
     );
     tile.addField(
@@ -122,17 +123,17 @@ void main() {
               resultType: const DynamicType(),
             ),
           ),
-          ExpressionStatement(StaticInvocation(of, Arguments([]))),
+          ExpressionStatement(StaticInvocation(of, Arguments(kernelList(<Expression>[])))),
           ExpressionStatement(StaticGet(leading)),
           ExpressionStatement(
             InstanceInvocation(
               InstanceAccessKind.Instance,
               NullLiteral(),
               Name('foo'),
-              Arguments([]),
+              Arguments(kernelList(<Expression>[])),
               interfaceTarget: foo,
               functionType: FunctionType(
-                const [],
+                kernelList(const <DartType>[]),
                 const DynamicType(),
                 Nullability.nonNullable,
               ),

@@ -76,7 +76,7 @@ def exercise(dart, entry, flutter, fixtures, source, work):
                     '--prefix-library-uris', 'interface_validation', '-o', output]
             if mode == 'whole':
                 args += ['--allow-dynamic-calls-in-dynamic-modules',
-                         '--extra-selectors-allowed-in-dynamic-calls=-,+,*,get:index,relativeError,absoluteError']
+                         '--extra-selectors-allowed-in-dynamic-calls=-,+,get:index,relativeError,absoluteError']
             result = subprocess.run([str(dart), str(entry), *map(str, args), str(module)],
                                     capture_output=True, text=True)
             log = work / f'{mode}-{iteration}.log'

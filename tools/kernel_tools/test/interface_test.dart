@@ -1,4 +1,5 @@
 import 'package:kernel/kernel.dart';
+import 'package:flutter_patcher_kernel_tools/src/kernel_lists.dart';
 
 import 'dart:convert';
 
@@ -155,7 +156,7 @@ void main() {
   final ownClass = Class(
     fileUri: Uri.parse('file:///fixture.dart'),
     name: 'Child',
-    supertype: Supertype(hostClass, []),
+    supertype: Supertype(hostClass, kernelList(const <DartType>[])),
   )..addProcedure(method('work'));
   own.addClass(ownClass);
   final barrel = library('package:host/host.dart');
@@ -304,7 +305,7 @@ void main() {
       ui.addProcedure(draw);
       final boot = method('boot', isStatic: true);
       boot.function.body = ExpressionStatement(
-        StaticInvocation(draw, Arguments([])),
+        StaticInvocation(draw, Arguments(kernelList(<Expression>[]))),
       );
       runtime.addProcedure(boot);
       c.libraries.addAll([runtime, ui]);
@@ -432,17 +433,17 @@ void main() {
     final application = Class(
       name: '_RxImpl&Object&RxObjectMixin',
       fileUri: uri,
-      supertype: Supertype(object, []),
-      implementedTypes: [Supertype(mixin, [])],
+      supertype: Supertype(object, kernelList(const <DartType>[])),
+      implementedTypes: [Supertype(mixin, kernelList(const <DartType>[]))],
     )..addProcedure(copy);
     application.isEliminatedMixin = true;
     final map = Class(
       name: '_JsonMap',
       fileUri: uri,
-      supertype: Supertype(object, []),
+      supertype: Supertype(object, kernelList(const <DartType>[])),
     )..addProcedure(method('[]', kind: ProcedureKind.Operator));
     final mock =
-        Class(name: 'Mock', fileUri: uri, supertype: Supertype(object, []))
+        Class(name: 'Mock', fileUri: uri, supertype: Supertype(object, kernelList(const <DartType>[])))
           ..addProcedure(method('[]', kind: ProcedureKind.Operator))
           ..addProcedure(method('noSuchMethod'));
     for (final c in [object, mixin, application, map, mock]) {
@@ -456,7 +457,7 @@ void main() {
     final controller = Class(
       name: 'Controller',
       fileUri: uri,
-      supertype: Supertype(application, []),
+      supertype: Supertype(application, kernelList(const <DartType>[])),
     );
     app.addClass(controller);
     final main = method('main', isStatic: true);
@@ -465,7 +466,7 @@ void main() {
         DynamicAccessKind.Dynamic,
         NullLiteral(),
         Name('[]'),
-        Arguments([IntLiteral(0)]),
+        Arguments(kernelList(<Expression>[IntLiteral(0)])),
       ),
     );
     app.addProcedure(main);
@@ -483,6 +484,60 @@ void main() {
     check(has('dynamically-callable', '_JsonMap', '[]'), 'dynamic selector');
     check(!has('dynamically-callable', 'Mock', '[]'), 'noSuchMethod excluded');
   });
+  test('inherited private host members are callable where they resolve', () {
+    // Issue #17: riverpod 3 generates provider subclasses in the app, and
+    // riverpod's ProviderContainer calls their inherited _addListener.
+    final uri = Uri.parse('file:///fixture.dart');
+    final host = library('package:riverpod/src/framework.dart');
+    final other = library('package:riverpod/src/other.dart');
+    Procedure private(String name, Library owner) => Procedure(
+      Name(name, owner),
+      ProcedureKind.Method,
+      FunctionNode(EmptyStatement()),
+      fileUri: uri,
+    );
+    final object = Class(name: 'Object', fileUri: uri);
+    final base = Class(
+      name: r'$ProviderBaseImpl',
+      fileUri: uri,
+      supertype: Supertype(object, kernelList(const <DartType>[])),
+    )
+      ..addProcedure(private('_addListener', host))
+      ..addProcedure(method('read'));
+    // A private name of another library, as a mixin application copies it.
+    final copy = Class(
+      name: r'_Copy&Object&Mixin',
+      fileUri: uri,
+      supertype: Supertype(base, kernelList(const <DartType>[])),
+    )..addProcedure(private('_foreign', host));
+    host.addClass(object);
+    host.addClass(base);
+    other.addClass(copy);
+    final app = library('package:app/main.g.dart');
+    app.addClass(
+      Class(
+        name: 'GreetingProvider',
+        fileUri: uri,
+        supertype: Supertype(copy, kernelList(const <DartType>[])),
+      )..addProcedure(private('_own', app)),
+    );
+    final doc = extractSurface(
+      Component(libraries: [app, host, other]),
+      {'app'},
+    ).interface;
+    bool has(String type, String member) => doc
+        .rows('callable')
+        .any((r) => r['class'] == type && r['member'] == member);
+    check(has(r'$ProviderBaseImpl', '_addListener'), 'own-library private');
+    check(has(r'$ProviderBaseImpl', 'read'), 'public inherited');
+    check(!has(r'_Copy&Object&Mixin', '_foreign'), 'foreign private name');
+    check(!doc.rows('callable').any((r) => r['member'] == '_own'), 'own code');
+    check(
+      indexableMember(base.procedures.first) &&
+          !indexableMember(copy.procedures.single),
+      'indexableMember',
+    );
+  });
   test('scanned packages are walked but stay host targets', () {
     final uri = Uri.parse('file:///fixture.dart');
     final hostLib = library('package:flutter/widgets.dart');
@@ -491,13 +546,13 @@ void main() {
     final freeLib = library('package:get/get.dart');
     final freeMember = method('find', isStatic: true);
     freeMember.function.body = ExpressionStatement(
-      StaticInvocation(hostMember, Arguments([])),
+      StaticInvocation(hostMember, Arguments(kernelList(<Expression>[]))),
     );
     freeLib.addProcedure(freeMember);
     final appLib = library('package:app/main.dart');
     final main = method('main', isStatic: true);
     main.function.body = ExpressionStatement(
-      StaticInvocation(freeMember, Arguments([])),
+      StaticInvocation(freeMember, Arguments(kernelList(<Expression>[]))),
     );
     appLib.addProcedure(main);
     final c = Component(libraries: [appLib, freeLib, hostLib]);

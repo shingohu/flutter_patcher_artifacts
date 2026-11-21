@@ -15,6 +15,7 @@ import 'package:yaml/yaml.dart';
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show getMessageCharOffset;
 import 'patch_checks.dart';
+import 'interface_defaults.dart' show dynamicSelectors;
 
 const patchUsage =
     '  compile-patch --request <json>   (optional filesystem_scheme + filesystem_roots, environment_defines)\n';
@@ -64,16 +65,9 @@ Future<Map<String, Object?>> compilePatch(List<String> args) async {
     ..dynamicInterfaceSpecificationUri = File(value('interface')).absolute.uri
     // Real applications index decoded JSON (`response['code']`). The host
     // interface lists as dynamically-callable every host member such a call
-    // could reach; selectors no host class declares are allowed below.
+    // could reach; selectors no host class declares are allowed besides.
     ..allowDynamicCallsInDynamicModules = true
-    ..dynamicCallsSelectorAllowList = [
-      '-',
-      '+',
-      '*',
-      'get:index',
-      'relativeError',
-      'absoluteError',
-    ]
+    ..dynamicCallsSelectorAllowList = dynamicSelectors
     ..embedSourceText = true
     ..onDiagnostic = (m) {
       if (!m.severity.toString().endsWith('.error')) return;

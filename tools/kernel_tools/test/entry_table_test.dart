@@ -1,4 +1,5 @@
 import 'package:kernel/kernel.dart';
+import 'package:flutter_patcher_kernel_tools/src/kernel_lists.dart';
 import 'package:kernel/core_types.dart';
 import 'package:flutter_patcher_kernel_tools/src/patch_checks.dart';
 
@@ -16,7 +17,7 @@ void main() {
   core.addClass(Class(name: 'Function', fileUri: file));
   core.addClass(Class(name: 'Map', fileUri: file));
   ConstantExpression mark(String value) => ConstantExpression(
-    InstanceConstant(pragma.reference, [], {
+    InstanceConstant(pragma.reference, kernelList(const <DartType>[]), {
       name.fieldReference: StringConstant(value),
     }),
   );
@@ -65,7 +66,7 @@ void main() {
     StaticTearOff(appMain),
     NullLiteral(),
   ];
-  final list = ListLiteral(slots);
+  final list = ListLiteral(kernelList(slots));
   final entry = Procedure(
     Name('dynamicModuleEntrypoint'),
     ProcedureKind.Method,

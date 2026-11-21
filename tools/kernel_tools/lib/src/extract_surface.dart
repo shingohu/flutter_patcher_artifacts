@@ -99,11 +99,7 @@ class _Collector extends RecursiveVisitor {
     return found == null ? member : unwrap(found);
   }
 
-  bool _isOwn(Library lib) {
-    final uri = lib.importUri;
-    if (uri.scheme != 'package') return uri.scheme == 'file';
-    return ownPackages.contains(uri.pathSegments.first);
-  }
+  bool _isOwn(Library lib) => isOwnLibrary(lib, ownPackages);
 
   // Records the member as referenced and, when they differ, the declaration
   // the patch validator resolves it to. Public members of private classes
@@ -128,15 +124,6 @@ class _Collector extends RecursiveVisitor {
     if (!identical(o, m)) _record(into, o, memberName(o));
   }
 
-  void _recordPrivate(Map<String, Map<String, Set<String>>> into, Member m) {
-    final lib = m.enclosingLibrary;
-    if (_isOwn(lib) || m.name.library != lib) return;
-    into
-        .putIfAbsent(lib.importUri.toString(), () => {})
-        .putIfAbsent(m.enclosingClass?.name ?? LibraryIndex.topLevel, () => {})
-        .add(memberName(m));
-  }
-
   void _record(
     Map<String, Map<String, Set<String>>> into,
     Member m,
@@ -144,9 +131,7 @@ class _Collector extends RecursiveVisitor {
   ) {
     final lib = m.enclosingLibrary;
     if (_isOwn(lib)) return;
-    // LibraryIndex refuses to index members with a private name, so an entry
-    // naming one would fail to resolve.
-    if (m.name.isPrivate) return;
+    if (!indexableMember(m)) return;
     into
         .putIfAbsent(lib.importUri.toString(), () => {})
         .putIfAbsent(m.enclosingClass?.name ?? LibraryIndex.topLevel, () => {})
@@ -511,7 +496,7 @@ Surface extractSurface(
       // implementations of host interfaces (Route.isCurrent for
       // PredictiveBackRoute.isCurrent through ModalRoute): every host member
       // whose name is declared more than once in the hierarchy is listed.
-      // (_addMember and _recordPrivate skip the application's own members.)
+      // (_addMember skips the application's own members.)
       // Own declarations count too (a mixin's showToolbar meeting the
       // TextInputClient its user implements); only host members are listed.
       final declarations = <String, List<Member>>{};
@@ -536,21 +521,13 @@ Surface extractSurface(
         if (collector._isOwn(host.enclosingLibrary)) continue;
         for (final m in host.members) {
           if (!m.isInstanceMember || m is Constructor) continue;
-          if (m.name.isPrivate) {
-            collector._recordPrivate(collector.canBeOverridden, m);
-          } else {
-            collector._addMember(collector.canBeOverridden, m);
-          }
+          collector._addMember(collector.canBeOverridden, m);
         }
       }
       for (final group in declarations.values) {
         if (group.length < 2) continue;
         for (final m in group) {
-          if (m.name.isPrivate) {
-            collector._recordPrivate(collector.canBeOverridden, m);
-          } else {
-            collector._addMember(collector.canBeOverridden, m);
-          }
+          collector._addMember(collector.canBeOverridden, m);
         }
       }
       for (final member in cls.members) {

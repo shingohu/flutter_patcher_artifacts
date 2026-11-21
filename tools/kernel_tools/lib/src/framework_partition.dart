@@ -108,32 +108,31 @@ Map<String, Object?> partitionFrameworkComponent(Component component) {
     }
   }
 
-  bool public(String name) => !name.startsWith('_');
   for (final library in flutter) {
     final owner = '${library.importUri}';
-    for (final field in library.fields.where((f) => public(f.name.text))) {
+    for (final field in library.fields.where((f) => publicName(f.name.text))) {
       collectType(field.type, owner);
     }
     for (final procedure in library.procedures.where(
-      (p) => public(p.name.text),
+      (p) => publicName(p.name.text),
     )) {
       collectFunction(procedure.function, owner);
     }
-    for (final clazz in library.classes.where((c) => public(c.name))) {
+    for (final clazz in library.classes.where((c) => publicName(c.name))) {
       collectType(clazz.supertype?.asInterfaceType, owner);
       collectType(clazz.mixedInType?.asInterfaceType, owner);
       for (final parameter in clazz.typeParameters)
         collectType(parameter.bound, owner);
-      for (final field in clazz.fields.where((f) => public(f.name.text))) {
+      for (final field in clazz.fields.where((f) => publicName(f.name.text))) {
         collectType(field.type, owner);
       }
       for (final procedure in clazz.procedures.where(
-        (p) => public(p.name.text),
+        (p) => publicName(p.name.text),
       )) {
         collectFunction(procedure.function, owner);
       }
       for (final constructor in clazz.constructors.where(
-        (c) => public(c.name.text),
+        (c) => publicName(c.name.text),
       )) {
         collectFunction(constructor.function, owner);
       }
@@ -151,13 +150,13 @@ Map<String, Object?> partitionFrameworkComponent(Component component) {
     final uri = '${library.importUri}';
     final declarations = <String>[
       ...library.classes
-          .where((c) => public(c.name))
+          .where((c) => publicName(c.name))
           .map((c) => 'class:${c.name}'),
       ...library.procedures
-          .where((p) => public(p.name.text))
+          .where((p) => publicName(p.name.text))
           .map((p) => 'procedure:${p.name.text}'),
       ...library.fields
-          .where((f) => public(f.name.text))
+          .where((f) => publicName(f.name.text))
           .map((f) => 'field:${f.name.text}'),
     ]..sort();
     final isBarrel = declarations.isEmpty;

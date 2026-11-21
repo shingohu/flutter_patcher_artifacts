@@ -103,6 +103,31 @@ class SourceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'tracked edits'):
             source_state.check_clean(self.root)
 
+    def test_moved_gitlink_passes_and_nested_edit_is_rejected(self):
+        # DEPS may check a nested repository out at another commit than its
+        # parent's gitlink records (3.50: vulkan-deps and glslang); each
+        # DEPS checkout is checked on its own.
+        dep = self.root / 'dep'
+        dep.mkdir()
+        def nested(*args):
+            return subprocess.check_output(['git', '-C', str(dep), *args], text=True).strip()
+        nested('init', '-q')
+        nested('config', 'user.name', 'Pipeline test')
+        nested('config', 'user.email', 'pipeline@example.invalid')
+        (dep / 'dep.cc').write_text('one\n')
+        nested('add', 'dep.cc')
+        nested('commit', '-qm', 'one')
+        recorded = nested('rev-parse', 'HEAD')
+        (dep / 'dep.cc').write_text('two\n')
+        nested('commit', '-qam', 'two')
+        self.git('update-index', '--add', '--cacheinfo', f'160000,{recorded},dep')
+        self.git('commit', '-qm', 'gitlink')
+        (self.root / '.gclient_entries').write_text('entries = {"dep": "git"}')
+        source_state.check_clean(self.root)
+        (dep / 'dep.cc').write_text('edited\n')
+        with self.assertRaisesRegex(ValueError, 'tracked edits'):
+            source_state.check_clean(self.root)
+
     def test_full_index_patch_is_independent_of_git_abbreviation(self):
         (self.root / 'source.cc').write_text('patched\n')
         short = self.git('-c', 'core.abbrev=8', 'diff', '--full-index', '--binary', 'HEAD')

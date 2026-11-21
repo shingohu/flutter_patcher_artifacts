@@ -1,4 +1,5 @@
 import 'package:kernel/kernel.dart';
+import 'package:flutter_patcher_kernel_tools/src/kernel_lists.dart';
 import 'package:flutter_patcher_kernel_tools/src/patch_checks.dart';
 
 /// Native bindings and FFI calls in module code are rejected; ordinary
@@ -50,7 +51,7 @@ void main() {
     Name('main'),
     ProcedureKind.Method,
     FunctionNode(
-      ExpressionStatement(StaticInvocation(target, Arguments([]))),
+      ExpressionStatement(StaticInvocation(target, Arguments(kernelList(<Expression>[])))),
     ),
     isStatic: true,
     fileUri: file,
@@ -61,7 +62,7 @@ void main() {
       issues([
         procedure(
           'home',
-          annotations: [ConstantExpression(InstanceConstant(native.reference, [], {}))],
+          annotations: [ConstantExpression(InstanceConstant(native.reference, kernelList(const <DartType>[]), {}))],
         ),
       ]),
       1,
@@ -72,7 +73,7 @@ void main() {
           'home',
           annotations: [
             ConstantExpression(
-              InstanceConstant(pragma.reference, [], {
+              InstanceConstant(pragma.reference, kernelList(const <DartType>[]), {
                 pragmaName.fieldReference: StringConstant('vm:ffi:native'),
               }),
             ),

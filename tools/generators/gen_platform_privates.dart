@@ -45,9 +45,7 @@ void main(List<String> args) {
     if (!_libs.contains(uri)) continue;
 
     void addMember(String container, Member m) {
-      // LibraryIndex only indexes a private name inside its own library, so an
-      // entry for a member private to a different library can never resolve.
-      if (m.name.isPrivate && m.name.library != lib) return;
+      if (!indexableMember(m)) return;
       privateMembers
           .putIfAbsent(uri, () => {})
           .putIfAbsent(container, () => {})

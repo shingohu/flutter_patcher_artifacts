@@ -4,7 +4,9 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:front_end/src/kernel/dynamic_module_validator.dart';
 
+import 'kernel_lists.dart';
 import 'extract_surface.dart' show surfaceOrigin;
+import 'interface_rows.dart' show indexableMember;
 
 Map<String, Object?> site(TreeNode node, String code, String message) {
   final loc = node.location;
@@ -257,7 +259,9 @@ List<Map<String, Object?>> inheritedCheck(
           // A member copied into a (private) eliminated mixin application is
           // listed by the host compiler under the mixin's own declaration.
           final origin = surfaceOrigin(member);
-          if (!member.name.isPrivate &&
+          // The same members extract-surface records: privates of the host
+          // library they belong to count, since the host calls them by name.
+          if ((indexableMember(member) || indexableMember(origin)) &&
               host.contains(member.enclosingLibrary) &&
               (!(exposed(member) || exposed(origin)) ||
                   !(recorded(member) || recorded(origin)))) {
@@ -408,17 +412,22 @@ void installEntryTable(
   final valueType = core.functionNonNullableRawType;
   table.replaceWith(
     ConstantExpression(
-      MapConstant(keyType, valueType, [
-        for (final key in keys)
-          ConstantMapEntry(
-            StringConstant(key),
-            StaticTearOffConstant(entries[key]!),
-          ),
-      ]),
-      InterfaceType(core.mapClass, Nullability.nonNullable, [
+      MapConstant(
         keyType,
         valueType,
-      ]),
+        kernelList(<ConstantMapEntry>[
+          for (final key in keys)
+            ConstantMapEntry(
+              StringConstant(key),
+              StaticTearOffConstant(entries[key]!),
+            ),
+        ]),
+      ),
+      InterfaceType(
+        core.mapClass,
+        Nullability.nonNullable,
+        kernelList(<DartType>[keyType, valueType]),
+      ),
     ),
   );
 }
